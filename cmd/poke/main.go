@@ -35,6 +35,8 @@ func main() {
 
 	fmt.Println("Successfully connected!")
 
+	createUserTable(db)
+	insertRecordToUsers(db, err)
 	defer db.Close()
 
 	router := gin.Default()
@@ -56,4 +58,30 @@ func main() {
 	})
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
+
+func createUserTable(db *sql.DB) {
+	const query = `
+		CREATE TABLE IF NOT EXISTS users (
+			id serial PRIMARY KEY,
+			age INT,
+			first_name TEXT,
+			last_name TEXT,
+			email TEXT UNIQUE NOT NULL
+		)`
+	db.Exec(query)
+}
+
+func insertRecordToUsers(db *sql.DB, err error) {
+	const query = `
+	INSERT INTO users (age, email, first_name, last_name)
+	VALUES ($1, $2, $3, $4)
+	RETURNING id`
+
+	id := 0
+	err = db.QueryRow(query, 25, "tom@mail.com", "Tom", "Vu").Scan(&id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("New record ID is:", id)
 }
