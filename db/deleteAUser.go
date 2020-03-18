@@ -30,20 +30,18 @@ func main() {
 		panic(err)
 	}
 
-	insertRecordToUsers(db)
+	deleteAUser(db)
 	defer db.Close()
+
 }
 
-func insertRecordToUsers(db *sql.DB) {
-	const query = `
-	INSERT INTO users (age, email, first_name, last_name)
-	VALUES ($1, $2, $3, $4)
-	RETURNING id`
+func deleteAUser(db *sql.DB) {
+	sqlStatement := `
+		DELETE FROM users
+		WHERE id = $1;`
 
-	id := 0
-	err := db.QueryRow(query, 3, "qasmi@mail.com", "Anas", "qasmi").Scan(&id)
+	_, err := db.Exec(sqlStatement, 5)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("New record ID is:", id)
 }
