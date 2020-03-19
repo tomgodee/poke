@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-
 	_ "github.com/lib/pq"
+	"github.com/tomvu/poke/pkg/greet"
 )
 
 const (
@@ -21,6 +21,8 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	greet.Hello()
 
 	router.GET("/user/:name", func(c *gin.Context) {
 		name := c.Param("name")

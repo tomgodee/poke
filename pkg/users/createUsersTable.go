@@ -7,18 +7,18 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "zxc321"
-	dbname   = "poke_development"
-)
+// const (
+// 	host     = "localhost"
+// 	port     = 5432
+// 	user     = "postgres"
+// 	password = "zxc321"
+// 	dbname   = "poke_development"
+// )
 
 func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		Host, Port, User, Password, Dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	createUserTable(db)
+	createUsersTable(db)
 
 	defer db.Close()
 }
@@ -44,7 +44,7 @@ func createUsersTable(db *sql.DB) {
 			last_name TEXT,
 			email TEXT UNIQUE NOT NULL
 		)`
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 
 	if err != nil {
 		panic(err)

@@ -8,17 +8,17 @@ import (
 )
 
 const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "zxc321"
-	dbname   = "poke_development"
+	Host     = "localhost"
+	Port     = 5432
+	User     = "postgres"
+	Password = "zxc321"
+	Dbname   = "poke_development"
 )
 
-func main() {
+func createAUser() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		Host, Port, User, Password, Dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
