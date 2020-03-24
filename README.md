@@ -12,3 +12,9 @@ migrate -database postgres://postgres:zxc321@localhost:5432/example?sslmode=disa
 ```
 migrate -database postgres://postgres:zxc321@localhost:5432/example?sslmode=disable -path db/migrations down
 ```
+### If migration fails then all migrations will be flaged to be dirty, to force back to a clean version run (V as the number of the clean version)
+```
+migrate -database postgres://postgres:zxc321@localhost:5432/example?sslmode=disable -path db/migrations force V
+```
+
+### Learn about type in postgresql, how you could define a new type, assign a field to have value of that type, how to drop that type when migrating down. 
