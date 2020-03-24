@@ -15,7 +15,7 @@ const (
 	Dbname   = "poke_development"
 )
 
-func createAUser() {
+func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		Host, Port, User, Password, Dbname)
