@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"github.com/tomvu/poke/pkg/greet"
+	greet "github.com/tomvu/poke/pkg/greet"
 )
 
 const (
