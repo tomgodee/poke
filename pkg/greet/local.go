@@ -1,3 +1,3 @@
-package main
+package greet
 
-var Hello = "Tom"
+var name = "Tom"
