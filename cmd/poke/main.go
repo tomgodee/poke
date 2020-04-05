@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	pingController "github.com/tomvu/poke/controllers/ping"
-	database "github.com/tomvu/poke/db"
+	usersController "github.com/tomvu/poke/controllers/users"
 	"github.com/tomvu/poke/middlewares"
 	"github.com/tomvu/poke/pkg/greet"
 )
@@ -33,15 +33,10 @@ func main() {
 	// Test if call a function from an imported pkg works
 	greet.Hello()
 
-	// Connect to the db
-	db := database.Connect()
-
-	defer db.Close()
-
 	//Group user route
 	users := router.Group("/users", middlewares.PathLogger)
 	{
-		users.GET("/:name")
+		users.GET("/:id", usersController.GetAUserHandler)
 	}
 
 	router.GET("/welcome", WelcomeHandler)
@@ -52,17 +47,6 @@ func main() {
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	// router.Run(":3000") // listen and serve on a specified port
-}
-
-func GetAUserHandler(c *gin.Context) {
-	name := c.Param("name")
-	message := "Hello " + name
-	path := c.FullPath()
-	// c.String(http.StatusOK, "Hello %s", name)
-	c.JSON(200, gin.H{
-		"message": message,
-		"path":    path,
-	})
 }
 
 func WelcomeHandler(c *gin.Context) {
