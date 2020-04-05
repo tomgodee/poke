@@ -1,103 +1,104 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	greet "github.com/tomvu/poke/pkg/greet"
+	pingController "github.com/tomvu/poke/controllers/ping"
+	database "github.com/tomvu/poke/db"
+	"github.com/tomvu/poke/middlewares"
+	"github.com/tomvu/poke/pkg/greet"
 )
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "zxc321"
-	dbname   = "poke_development"
-)
-
-// Ping API handler
-func pong(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "Pong",
-	})
-}
-
-// Middleware that prints out the path
-func pathLogger(c *gin.Context) {
-	path := c.FullPath()
-	fmt.Println(path)
-}
 
 func writeLogFile() {
 	gin.DisableConsoleColor()
 
 	// Logging to a file.
 	f, _ := os.Create("gin.log")
-	gin.DefaultWriter = io.MultiWriter(f)
-
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 }
 
 func main() {
+	// Write actions to a log file as well as the console
 	writeLogFile()
 
 	// Default With the Logger and Recovery middleware already attached
 	router := gin.Default()
 
 	// Ping API
-	router.GET("/ping", pathLogger, pong)
+	router.GET("/ping", middlewares.PathLogger, pingController.Pong)
 
 	// Test if call a function from an imported pkg works
 	greet.Hello()
 
-	//Group user route
-	users := router.Group("/users", pathLogger)
-	{
-		users.GET("/:name", func(c *gin.Context) {
-			name := c.Param("name")
-			message := "Hello " + name
-			path := c.FullPath()
-			// c.String(http.StatusOK, "Hello %s", name)
-			c.JSON(200, gin.H{
-				"message": message,
-				"path":    path,
-			})
-		})
+	// Connect to the db
+	db := database.Connect()
 
-		users.GET("/:name/*action", func(c *gin.Context) {
-			name := c.Param("name")
-			action := c.Param("action")
-			message := name + " is " + action
-			path := c.FullPath()
-			c.JSON(200, gin.H{
-				"message": message,
-				"path":    path,
-			})
-		})
+	defer db.Close()
+
+	//Group user route
+	users := router.Group("/users", middlewares.PathLogger)
+	{
+		users.GET("/:name")
 	}
 
-	router.GET("/welcome", func(c *gin.Context) {
-		firstname := c.DefaultQuery("firstname", "Guest")
-		lastname := c.Query("lastname")
+	router.GET("/welcome", WelcomeHandler)
 
-		c.JSON(200, gin.H{
-			"message": "Welcome " + firstname + " " + lastname,
-		})
-	})
+	router.POST("form", BasicFormHandler)
 
-	router.POST("form", func(c *gin.Context) {
-		// message := c.PostForm("message")
-		message := c.PostFormMap("message")
-		nick := c.DefaultPostForm("nick", "guest")
-
-		c.JSON(200, gin.H{
-			"message": message,
-			"nick":    nick,
-		})
-	})
+	router.GET("/getb", GetDataB)
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	// router.Run(":3000") // listen and serve on a specified port
+}
+
+func GetAUserHandler(c *gin.Context) {
+	name := c.Param("name")
+	message := "Hello " + name
+	path := c.FullPath()
+	// c.String(http.StatusOK, "Hello %s", name)
+	c.JSON(200, gin.H{
+		"message": message,
+		"path":    path,
+	})
+}
+
+func WelcomeHandler(c *gin.Context) {
+	firstname := c.DefaultQuery("firstname", "Guest")
+	lastname := c.Query("lastname")
+
+	c.JSON(200, gin.H{
+		"message": "Welcome " + firstname + " " + lastname,
+	})
+}
+
+func BasicFormHandler(c *gin.Context) {
+	// message := c.PostForm("message")
+	message := c.PostFormMap("message")
+	nick := c.DefaultPostForm("nick", "guest")
+
+	c.JSON(200, gin.H{
+		"message": message,
+		"nick":    nick,
+	})
+}
+
+type StructA struct {
+	FieldA string `form:"field_a"`
+}
+
+type StructB struct {
+	NestedStruct StructA
+	FieldB       string `form:"field_b"`
+}
+
+func GetDataB(c *gin.Context) {
+	var b StructB
+	c.Bind(&b)
+	c.JSON(200, gin.H{
+		"a": b.NestedStruct,
+		"b": b.FieldB,
+	})
 }
