@@ -2,7 +2,6 @@ package userModel
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type User struct {
@@ -12,27 +11,21 @@ type User struct {
 	Email    string `json: "email"`
 }
 
-func GetAUser(db *sql.DB, user_id int) {
+func GetAUser(db *sql.DB, user_id int) (u User) {
 	const query = `
 	SELECT id, username, email FROM users
 	WHERE id = $1;`
 
-	var id int
-	var username, email string
-	// var user User
+	// var id int
+	// var username, email string
+	var user User
 
 	row := db.QueryRow(query, user_id)
 
-	err := row.Scan(&id, &username, &email)
+	err := row.Scan(&user.ID, &user.Username, &user.Email)
 
-	switch err {
-	case sql.ErrNoRows:
-		fmt.Println("No rows were returned!")
-	case nil:
-		fmt.Println(id, username, email)
-		// user = User(id, username, email)
-	default:
+	if err != nil {
 		panic(err)
 	}
-
+	return user
 }

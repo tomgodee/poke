@@ -20,13 +20,13 @@ func GetAUserHandler(c *gin.Context) {
 
 	path := c.FullPath()
 
-	userModel.GetAUser(db, user_id)
+	user := userModel.GetAUser(db, user_id)
 	message := "requested "
 
 	// c.String(http.StatusOK, "Hello %s", name)
 	c.JSON(200, gin.H{
 		"message": message,
 		"path":    path,
-		// "user":    user,
+		"user":    user,
 	})
 }

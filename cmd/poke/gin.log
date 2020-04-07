@@ -1,0 +1,18 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> github.com/tomvu/poke/controllers/ping.Pong (4 handlers)
+[GIN-debug] GET    /users/:id                --> github.com/tomvu/poke/controllers/users.GetAUserHandler (4 handlers)
+[GIN-debug] GET    /welcome                  --> main.WelcomeHandler (3 handlers)
+[GIN-debug] POST   /form                     --> main.BasicFormHandler (3 handlers)
+[GIN-debug] GET    /getb                     --> main.GetDataB (3 handlers)
+[GIN-debug] Environment variable PORT is undefined. Using port :8080 by default
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2020/04/07 - 23:40:47 | 200 |     36.9022ms |             ::1 | GET      "/users/1"
+[GIN] 2020/04/07 - 23:40:48 | 200 |     31.9139ms |             ::1 | GET      "/users/1"
+[GIN] 2020/04/07 - 23:40:48 | 200 |    129.6546ms |             ::1 | GET      "/users/1"
+[GIN] 2020/04/07 - 23:40:48 | 200 |     36.9004ms |             ::1 | GET      "/users/1"
+[GIN] 2020/04/07 - 23:40:48 | 200 |      33.909ms |             ::1 | GET      "/users/1"
