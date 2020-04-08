@@ -23,10 +23,28 @@ func GetAUserHandler(c *gin.Context) {
 	user := userModel.GetAUser(db, user_id)
 	message := "requested "
 
-	// c.String(http.StatusOK, "Hello %s", name)
 	c.JSON(200, gin.H{
 		"message": message,
 		"path":    path,
 		"user":    user,
 	})
+}
+
+func GetUsersHandler(c *gin.Context) {
+	db := database.Connect()
+	defer db.Close()
+
+	users := userModel.GetUsers(db)
+	c.JSON(200, users)
+}
+
+func CreateAUserHandler(c *gin.Context) {
+	db := database.Connect()
+	defer db.Close()
+
+	newUserData := c.PostFormMap("payload")
+
+	newUserID := userModel.CreateAUser(db, newUserData)
+	c.JSON(200, newUserID)
+
 }

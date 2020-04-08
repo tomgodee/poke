@@ -37,6 +37,8 @@ func main() {
 	users := router.Group("/users", middlewares.PathLogger)
 	{
 		users.GET("/:id", usersController.GetAUserHandler)
+		users.GET("", usersController.GetUsersHandler)
+		users.POST("", usersController.CreateAUserHandler)
 	}
 
 	router.GET("/welcome", WelcomeHandler)
