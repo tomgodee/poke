@@ -39,6 +39,10 @@ func main() {
 		users.GET("/:id", usersController.GetAUserHandler)
 		users.GET("", usersController.GetUsersHandler)
 		users.POST("", usersController.CreateAUserHandler)
+		users.PUT("/:id", usersController.UpdateAUserHandler)
+		users.DELETE("/:id", usersController.DeleteAUserHandler)
+		// TODO: Use PATCH request instead of PUT in the future
+		// users.PATCH("/:id", usersController.UpdateAUserHandler)
 	}
 
 	router.GET("/welcome", WelcomeHandler)

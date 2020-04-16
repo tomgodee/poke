@@ -2,13 +2,14 @@ package userModel
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type User struct {
 	ID       int    `json: "id"`
-	Username string `json: "username"`
-	Password string `json: "password`
-	Email    string `json: "email"`
+	Username string `json: "username" form:"username"`
+	Password string `json: "password form:"password"`
+	Email    string `json: "email" form:"email"`
 }
 
 func GetAUser(db *sql.DB, user_id int) (u User) {
@@ -60,6 +61,7 @@ func CreateAUser(db *sql.DB, data map[string]string) (id int) {
 	RETURNING id`
 
 	var lastInsertId int
+	// TODO: Use db.Exec instead of QueryRow
 	err := db.QueryRow(query, data["username"], data["password"], data["email"]).Scan(&lastInsertId)
 
 	if err != nil {
@@ -67,4 +69,27 @@ func CreateAUser(db *sql.DB, data map[string]string) (id int) {
 	}
 
 	return lastInsertId
+}
+
+func UpdateAUser(db *sql.DB, data map[string]string, id int) {
+	const query = `
+	UPDATE users
+	SET Username = $1, Password = $2, Email = $3
+	WHERE ID = $4
+	RETURNING ID
+	`
+
+	fmt.Println(data)
+
+	res, err := db.Exec(query, data["username"], data["password"], data["email"], id)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res)
+
+	// var updateId = res.id
+
+	return
 }
