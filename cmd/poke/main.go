@@ -36,11 +36,11 @@ func main() {
 	//Group user route
 	users := router.Group("/users", middlewares.PathLogger)
 	{
-		users.GET("/:id", usersController.GetAUserHandler)
-		users.GET("", usersController.GetUsersHandler)
-		users.POST("", usersController.CreateAUserHandler)
-		users.PUT("/:id", usersController.UpdateAUserHandler)
-		users.DELETE("/:id", usersController.DeleteAUserHandler)
+		users.GET("/:id", usersController.GetOne)
+		users.GET("", usersController.GetAll)
+		users.POST("", usersController.Create)
+		users.PUT("/:id", usersController.Update)
+		users.DELETE("/:id", usersController.Delete)
 		// TODO: Use PATCH request instead of PUT in the future
 		// users.PATCH("/:id", usersController.UpdateAUserHandler)
 	}

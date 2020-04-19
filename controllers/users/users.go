@@ -9,7 +9,7 @@ import (
 	userModel "github.com/tomvu/poke/models/user"
 )
 
-func GetAUserHandler(c *gin.Context) {
+func GetOne(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -21,7 +21,7 @@ func GetAUserHandler(c *gin.Context) {
 
 	path := c.FullPath()
 
-	user := userModel.GetAUser(db, userID)
+	user := userModel.GetOne(db, userID)
 	message := "requested "
 
 	c.JSON(200, gin.H{
@@ -31,25 +31,25 @@ func GetAUserHandler(c *gin.Context) {
 	})
 }
 
-func GetUsersHandler(c *gin.Context) {
+func GetAll(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
-	users := userModel.GetUsers(db)
+	users := userModel.GetAll(db)
 	c.JSON(200, users)
 }
 
-func CreateAUserHandler(c *gin.Context) {
+func Create(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
 	newUserData := c.PostFormMap("payload")
 
-	newUserID := userModel.CreateAUser(db, newUserData)
+	newUserID := userModel.Create(db, newUserData)
 	c.JSON(200, newUserID)
 }
 
-func UpdateAUserHandler(c *gin.Context) {
+func Update(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -59,13 +59,21 @@ func UpdateAUserHandler(c *gin.Context) {
 	}
 	updatedData := c.PostFormMap("payload")
 
-	userModel.UpdateAUser(db, updatedData, userID)
+	userModel.Update(db, updatedData, userID)
 
-	c.JSON(http.StatusOK, "a")
+	c.JSON(http.StatusOK, "Success")
 }
 
-func DeleteAUserHandler(c *gin.Context) {
+func Delete(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		panic(err)
+	}
+
+	userModel.Delete(db, userID)
+
+	c.JSON(http.StatusOK, "Success")
 }
