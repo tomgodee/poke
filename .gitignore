@@ -1,1 +1,2 @@
-cmd/poke/gin.log
+*.log
+gin.log
