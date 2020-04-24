@@ -4,7 +4,7 @@
 ## Postgresql as database, 
 ## The migrate package helps with migration 
 
-### To run migration up run in root this command (Run migration with driver to postgresql, username=postgresql, password=zxc321, port=5432, database name = poke_development, sslmode = disabled)
+### To run migration up run in root (application level) this command (Run migration with driver to postgresql, username=postgresql, password=zxc321, port=5432, database name = poke_development, sslmode = disabled)
 ```
 migrate -database postgres://postgres:zxc321@localhost:5432/poke_development?sslmode=disable -path db/migrations up
 ```

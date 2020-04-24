@@ -1,15 +1,17 @@
 package usersController
 
 import (
+	"database/sql"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	database "github.com/tomvu/poke/db"
 	userModel "github.com/tomvu/poke/models/user"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func GetOne(c *gin.Context) {
+func GetOneHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -31,7 +33,7 @@ func GetOne(c *gin.Context) {
 	})
 }
 
-func GetAll(c *gin.Context) {
+func GetAllHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -39,7 +41,7 @@ func GetAll(c *gin.Context) {
 	c.JSON(200, users)
 }
 
-func Create(c *gin.Context) {
+func CreateHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -49,7 +51,7 @@ func Create(c *gin.Context) {
 	c.JSON(200, newUserID)
 }
 
-func Update(c *gin.Context) {
+func UpdateHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -64,7 +66,7 @@ func Update(c *gin.Context) {
 	c.JSON(http.StatusOK, "Success")
 }
 
-func Delete(c *gin.Context) {
+func DeleteHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
@@ -76,4 +78,21 @@ func Delete(c *gin.Context) {
 	userModel.Delete(db, userID)
 
 	c.JSON(http.StatusOK, "Success")
+}
+
+func LoginHandler(c *gin.Context) {
+	db := database.Connect()
+	defer db.Close()
+
+	loginData := c.PostFormMap("payload")
+	err := userModel.Login(db, loginData)
+
+	switch {
+	case err == sql.ErrNoRows:
+		c.JSON(401, "Wrong username!")
+	case err == bcrypt.ErrMismatchedHashAndPassword:
+		c.JSON(401, "Wrong password!")
+	case err == nil:
+		c.JSON(200, "Success")
+	}
 }

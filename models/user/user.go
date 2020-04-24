@@ -3,6 +3,8 @@ package userModel
 import (
 	"database/sql"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -60,15 +62,26 @@ func Create(db *sql.DB, data map[string]string) (id int) {
 	VALUES ($1, $2, $3)
 	RETURNING id`
 
-	var lastInsertId int
-	// TODO: Use db.Exec instead of QueryRow
-	err := db.QueryRow(query, data["username"], data["password"], data["email"]).Scan(&lastInsertId)
+	// Hashing password
+	hash, err := bcrypt.GenerateFromPassword([]byte(data["password"]), bcrypt.MinCost)
+	if err != nil {
+		panic(err)
+	}
+
+	// inputPwd := []byte(strings.Join([]string{"z", "x", "c"}, ""))
+	// err = bcrypt.CompareHashAndPassword(hash, inputPwd)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	var lastInsertID int
+	err = db.QueryRow(query, data["username"], hash, data["email"]).Scan(&lastInsertID)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return lastInsertId
+	return lastInsertID
 }
 
 func Update(db *sql.DB, data map[string]string, id int) {
@@ -107,4 +120,31 @@ func Delete(db *sql.DB, id int) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func Login(db *sql.DB, loginData map[string]string) (err error) {
+	const query = `
+	SELECT password
+	FROM users
+	WHERE username = $1`
+
+	var pwd string
+	row := db.QueryRow(query, loginData["username"])
+	err = row.Scan(&pwd)
+	switch {
+	case err == sql.ErrNoRows:
+		return err
+	case err != nil:
+		panic(err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(pwd), []byte(loginData["password"]))
+	switch {
+	case err == bcrypt.ErrMismatchedHashAndPassword:
+		return err
+	case err != nil:
+		panic(err)
+	}
+
+	return nil
 }
