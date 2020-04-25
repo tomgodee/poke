@@ -3,7 +3,9 @@ package userModel
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,11 +22,8 @@ func GetOne(db *sql.DB, user_id int) (u User) {
 	WHERE id = $1;`
 
 	var user User
-
 	row := db.QueryRow(query, user_id)
-
 	err := row.Scan(&user.ID, &user.Username, &user.Email)
-
 	if err != nil {
 		panic(err)
 	}
@@ -62,21 +61,10 @@ func Create(db *sql.DB, data map[string]string) (id int) {
 	VALUES ($1, $2, $3)
 	RETURNING id`
 
-	// Hashing password
-	hash, err := bcrypt.GenerateFromPassword([]byte(data["password"]), bcrypt.MinCost)
-	if err != nil {
-		panic(err)
-	}
-
-	// inputPwd := []byte(strings.Join([]string{"z", "x", "c"}, ""))
-	// err = bcrypt.CompareHashAndPassword(hash, inputPwd)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	hash := hashPwd(data["password"])
 
 	var lastInsertID int
-	err = db.QueryRow(query, data["username"], hash, data["email"]).Scan(&lastInsertID)
-
+	err := db.QueryRow(query, data["username"], hash, data["email"]).Scan(&lastInsertID)
 	if err != nil {
 		panic(err)
 	}
@@ -92,21 +80,14 @@ func Update(db *sql.DB, data map[string]string, id int) {
 	RETURNING ID
 	`
 
-	fmt.Println(data)
-
-	res, err := db.Exec(query, data["username"], data["password"], data["email"], id)
-
+	hash := hashPwd(data["password"])
+	_, err := db.Exec(query, data["username"], hash, data["email"], id)
 	if err != nil {
 		panic(err)
 	}
 
 	// TODO: Somehow res is the address in memory ???
 	// => Need to further research to differentiate db.Exec vs db.Query
-	fmt.Println(res)
-
-	// var updateId = res.id
-
-	return
 }
 
 func Delete(db *sql.DB, id int) {
@@ -116,7 +97,6 @@ func Delete(db *sql.DB, id int) {
 	RETURNING ID
 	`
 	_, err := db.Exec(query, id)
-
 	if err != nil {
 		panic(err)
 	}
@@ -124,13 +104,14 @@ func Delete(db *sql.DB, id int) {
 
 func Login(db *sql.DB, loginData map[string]string) (err error) {
 	const query = `
-	SELECT password
+	SELECT password, id
 	FROM users
 	WHERE username = $1`
 
 	var pwd string
+	var id int
 	row := db.QueryRow(query, loginData["username"])
-	err = row.Scan(&pwd)
+	err = row.Scan(&pwd, &id)
 	switch {
 	case err == sql.ErrNoRows:
 		return err
@@ -138,6 +119,7 @@ func Login(db *sql.DB, loginData map[string]string) (err error) {
 		panic(err)
 	}
 
+	// Check if password is correct
 	err = bcrypt.CompareHashAndPassword([]byte(pwd), []byte(loginData["password"]))
 	switch {
 	case err == bcrypt.ErrMismatchedHashAndPassword:
@@ -145,6 +127,39 @@ func Login(db *sql.DB, loginData map[string]string) (err error) {
 	case err != nil:
 		panic(err)
 	}
+	createToken(string(id))
 
 	return nil
+}
+
+func createToken(userID string) {
+	// Load secret key
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
+	// mySigningKey := os.Getenv("SECRET_KEY")
+
+	// Token expires 15 mins after created
+	expirationTime := time.Now().Add(15 * time.Minute)
+	claims := &jwt.StandardClaims{
+		Audience:  userID,
+		ExpiresAt: expirationTime.Unix(),
+	}
+
+	// Create and sign the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	mySigningKey := []byte("Somethingveryimportantmbidk")
+
+	ss, err := token.SignedString(mySigningKey)
+	fmt.Println(ss)
+	fmt.Println(err)
+}
+
+func hashPwd(pwd string) (hash []byte) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.MinCost)
+	if err != nil {
+		panic(err)
+	}
+	return hash
 }

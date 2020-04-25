@@ -1,4 +1,4 @@
-package usersController
+package userscontroller
 
 import (
 	"database/sql"

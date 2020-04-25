@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	pingController "github.com/tomvu/poke/controllers/ping"
-	usersController "github.com/tomvu/poke/controllers/users"
+	userscontroller "github.com/tomvu/poke/controllers/users"
 	"github.com/tomvu/poke/middlewares"
 	"github.com/tomvu/poke/pkg/greet"
 )
@@ -33,17 +33,22 @@ func main() {
 	// Test if call a function from an imported pkg works
 	greet.Hello()
 
-	//Group user route
-	users := router.Group("/users", middlewares.PathLogger)
+	// Private Group user route
+	users := router.Group("/users", middlewares.Authentication)
 	{
-		users.GET("/:id", usersController.GetOneHandler)
-		users.GET("", usersController.GetAllHandler)
-		users.POST("", usersController.CreateHandler)
-		users.PUT("/:id", usersController.UpdateHandler)
-		users.DELETE("/:id", usersController.DeleteHandler)
-		users.POST("/login", usersController.LoginHandler)
+		users.GET("/:id", userscontroller.GetOneHandler)
+		users.GET("", userscontroller.GetAllHandler)
+		users.POST("", userscontroller.CreateHandler)
+		users.PUT("/:id", userscontroller.UpdateHandler)
+		users.DELETE("/:id", userscontroller.DeleteHandler)
 		// TODO: Use PATCH request instead of PUT in the future
-		// users.PATCH("/:id", usersController.UpdateAUserHandler)
+		// users.PATCH("/:id", userscontroller.UpdateAUserHandler)
+	}
+
+	// Public Group user route
+	publicUsers := router.Group("/users")
+	{
+		publicUsers.POST("/login", userscontroller.LoginHandler)
 	}
 
 	router.GET("/welcome", WelcomeHandler)
