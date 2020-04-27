@@ -5,8 +5,10 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	pingController "github.com/tomvu/poke/controllers/ping"
+	todoscontroller "github.com/tomvu/poke/controllers/todos"
 	userscontroller "github.com/tomvu/poke/controllers/users"
 	"github.com/tomvu/poke/middlewares"
 	"github.com/tomvu/poke/pkg/greet"
@@ -23,6 +25,7 @@ func writeLogFile() {
 func main() {
 	// Write actions to a log file as well as the console
 	writeLogFile()
+	setEnvVars()
 
 	// Default With the Logger and Recovery middleware already attached
 	router := gin.Default()
@@ -38,27 +41,35 @@ func main() {
 	{
 		users.GET("/:id", userscontroller.GetOneHandler)
 		users.GET("", userscontroller.GetAllHandler)
-		users.POST("", userscontroller.CreateHandler)
 		users.PUT("/:id", userscontroller.UpdateHandler)
 		users.DELETE("/:id", userscontroller.DeleteHandler)
 		// TODO: Use PATCH request instead of PUT in the future
 		// users.PATCH("/:id", userscontroller.UpdateAUserHandler)
+
+		todos := users.Group("/:id/todos")
+		{
+			todos.GET("", todoscontroller.GetAllHandler)
+			todos.POST("/create", todoscontroller.CreateHandler)
+		}
 	}
 
-	// Public Group user route
-	publicUsers := router.Group("/users")
+	// Public Group route
+	public := router.Group("")
 	{
-		publicUsers.POST("/login", userscontroller.LoginHandler)
+		public.POST("/login", userscontroller.LoginHandler)
+		public.POST("/signup", userscontroller.CreateHandler)
 	}
 
 	router.GET("/welcome", WelcomeHandler)
-
-	router.POST("form", BasicFormHandler)
 
 	router.GET("/getb", GetDataB)
 
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	// router.Run(":3000") // listen and serve on a specified port
+}
+
+func setEnvVars() {
+	os.Setenv("SECRET_KEY", "Somethingveryimportantmbidk")
 }
 
 func WelcomeHandler(c *gin.Context) {
@@ -67,17 +78,6 @@ func WelcomeHandler(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"message": "Welcome " + firstname + " " + lastname,
-	})
-}
-
-func BasicFormHandler(c *gin.Context) {
-	// message := c.PostForm("message")
-	message := c.PostFormMap("message")
-	nick := c.DefaultPostForm("nick", "guest")
-
-	c.JSON(200, gin.H{
-		"message": message,
-		"nick":    nick,
 	})
 }
 

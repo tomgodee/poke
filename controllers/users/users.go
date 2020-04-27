@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	database "github.com/tomvu/poke/db"
-	userModel "github.com/tomvu/poke/models/user"
+	usermodel "github.com/tomvu/poke/models/user"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,7 +23,7 @@ func GetOneHandler(c *gin.Context) {
 
 	path := c.FullPath()
 
-	user := userModel.GetOne(db, userID)
+	user := usermodel.GetOne(db, userID)
 	message := "requested "
 
 	c.JSON(200, gin.H{
@@ -37,7 +37,7 @@ func GetAllHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
-	users := userModel.GetAll(db)
+	users := usermodel.GetAll(db)
 	c.JSON(200, users)
 }
 
@@ -47,7 +47,7 @@ func CreateHandler(c *gin.Context) {
 
 	newUserData := c.PostFormMap("payload")
 
-	newUserID := userModel.Create(db, newUserData)
+	newUserID := usermodel.Create(db, newUserData)
 	c.JSON(200, newUserID)
 }
 
@@ -61,7 +61,7 @@ func UpdateHandler(c *gin.Context) {
 	}
 	updatedData := c.PostFormMap("payload")
 
-	userModel.Update(db, updatedData, userID)
+	usermodel.Update(db, updatedData, userID)
 
 	c.JSON(http.StatusOK, "Success")
 }
@@ -75,7 +75,7 @@ func DeleteHandler(c *gin.Context) {
 		panic(err)
 	}
 
-	userModel.Delete(db, userID)
+	usermodel.Delete(db, userID)
 
 	c.JSON(http.StatusOK, "Success")
 }
@@ -85,7 +85,7 @@ func LoginHandler(c *gin.Context) {
 	defer db.Close()
 
 	loginData := c.PostFormMap("payload")
-	err := userModel.Login(db, loginData)
+	err := usermodel.Login(db, loginData)
 
 	switch {
 	case err == sql.ErrNoRows:

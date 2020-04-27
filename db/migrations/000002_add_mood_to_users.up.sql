@@ -6,5 +6,5 @@ CREATE TYPE enum_mood AS ENUM (
 	'neutral'
 );
 ALTER TABLE users ADD COLUMN mood enum_mood;
-
+  
 COMMIT;

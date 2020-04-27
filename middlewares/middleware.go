@@ -3,6 +3,7 @@ package middlewares
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -23,13 +24,7 @@ func Authentication(c *gin.Context) {
 	}
 
 	// Load secret key
-	// err := godotenv.Load(".env")
-	// if err != nil {
-	// 	panic(err)
-	// 	log.Fatal("Error loading .env file")
-	// }
-	// mySigningKey := os.Getenv("SECRET_KEY")
-	mySigningKey := []byte("Somethingveryimportantmbidk")
+	mySigningKey := []byte(os.Getenv("SECRET_KEY"))
 
 	// Validate token
 	tokenString := strings.Split(c.Request.Header.Get("Authorization"), " ")[1]
@@ -38,8 +33,11 @@ func Authentication(c *gin.Context) {
 		return mySigningKey, nil
 	})
 
+	if err == jwt.ErrSignatureInvalid || !token.Valid {
+		c.JSON(401, "Unauthorized")
+	}
+
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(token)
 }

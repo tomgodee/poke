@@ -1,8 +1,9 @@
-package userModel
+package usermodel
 
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -12,7 +13,7 @@ import (
 type User struct {
 	ID       int    `json: "id"`
 	Username string `json: "username" form:"username"`
-	Password string `json: "password form:"password"`
+	Password string `json: "password" form:"password"`
 	Email    string `json: "email" form:"email"`
 }
 
@@ -75,13 +76,12 @@ func Create(db *sql.DB, data map[string]string) (id int) {
 func Update(db *sql.DB, data map[string]string, id int) {
 	const query = `
 	UPDATE users
-	SET Username = $1, Password = $2, Email = $3
-	WHERE ID = $4
+	SET Username = $1
+	WHERE ID = $2
 	RETURNING ID
 	`
 
-	hash := hashPwd(data["password"])
-	_, err := db.Exec(query, data["username"], hash, data["email"], id)
+	_, err := db.Exec(query, data["username"], id)
 	if err != nil {
 		panic(err)
 	}
@@ -134,14 +134,10 @@ func Login(db *sql.DB, loginData map[string]string) (err error) {
 
 func createToken(userID string) {
 	// Load secret key
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
-	// mySigningKey := os.Getenv("SECRET_KEY")
+	mySigningKey := []byte(os.Getenv("SECRET_KEY"))
 
-	// Token expires 15 mins after created
-	expirationTime := time.Now().Add(15 * time.Minute)
+	// Set token's expiration time
+	expirationTime := time.Now().Add(60 * 24 * time.Minute)
 	claims := &jwt.StandardClaims{
 		Audience:  userID,
 		ExpiresAt: expirationTime.Unix(),
@@ -149,8 +145,6 @@ func createToken(userID string) {
 
 	// Create and sign the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	mySigningKey := []byte("Somethingveryimportantmbidk")
-
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Println(ss)
 	fmt.Println(err)
