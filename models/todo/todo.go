@@ -2,8 +2,6 @@ package todomodel
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"log"
 )
 
@@ -36,21 +34,58 @@ func GetAll(db *sql.DB) (t []Todo) {
 
 		todoList = append(todoList, todo)
 	}
-	a, err := json.Marshal(todoList)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(a))
 	return todoList
 }
 
-func Create(db *sql.DB, body string, user_id int) {
+func GetOne(db *sql.DB, todoID int) (t Todo) {
+	const query = `
+	SELECT id, body, done
+	FROM todos
+	WHERE id = $1`
+
+	var todo Todo
+	row := db.QueryRow(query, todoID)
+	err := row.Scan(&todo.ID, &todo.Body, &todo.Done)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return todo
+}
+
+func Create(db *sql.DB, body string, userID int) {
 	const query = `
 	INSERT INTO todos (body, user_id)
 	VALUES ($1, $2)
 	`
 
-	_, err := db.Exec(query, body, user_id)
+	_, err := db.Exec(query, body, userID)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Update(db *sql.DB, payload map[string]string, todoID int) {
+	const query = `
+	UPDATE todos
+	SET body = $1, done = $2
+	WHERE id = $3`
+
+	_, err := db.Exec(query, payload["body"], payload["done"], todoID)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Delete(db *sql.DB, todoID int) {
+	const query = `
+	DELETE FROM todos
+	WHERE id = $1`
+
+	_, err := db.Exec(query, todoID)
 	if err != nil {
 		panic(err)
 	}

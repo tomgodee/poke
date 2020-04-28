@@ -49,7 +49,10 @@ func main() {
 		todos := users.Group("/:id/todos")
 		{
 			todos.GET("", todoscontroller.GetAllHandler)
+			todos.GET("/:todo_id", todoscontroller.GetOneHandler)
 			todos.POST("/create", todoscontroller.CreateHandler)
+			todos.PUT("/:todo_id", todoscontroller.UpdateHandler)
+			todos.DELETE("/:todo_id", todoscontroller.DeleteHandler)
 		}
 	}
 
