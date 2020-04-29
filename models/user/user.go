@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -127,7 +128,7 @@ func Login(db *sql.DB, loginData map[string]string) (err error) {
 	case err != nil:
 		panic(err)
 	}
-	createToken(string(id))
+	createToken(strconv.Itoa(id))
 
 	return nil
 }

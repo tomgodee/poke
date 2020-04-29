@@ -33,8 +33,9 @@ func Authentication(c *gin.Context) {
 		return mySigningKey, nil
 	})
 
-	if err == jwt.ErrSignatureInvalid || !token.Valid {
+	if err == jwt.ErrSignatureInvalid || !token.Valid || claims.Audience != c.Param("id") {
 		c.JSON(401, "Unauthorized")
+		c.Abort()
 	}
 
 	if err != nil {

@@ -12,13 +12,14 @@ type Todo struct {
 	UserID int    `json:"userID,omitempty" form:"userID"`
 }
 
-func GetAll(db *sql.DB) (t []Todo) {
+func GetAll(db *sql.DB, userID int) (t []Todo) {
 	const query = `
 	SELECT id, body, done
-	FROM todos`
+	FROM todos
+	WHERE user_id = $1`
 
 	var todoList []Todo
-	rows, err := db.Query(query)
+	rows, err := db.Query(query, userID)
 	if err != nil {
 		log.Fatal(err)
 	}

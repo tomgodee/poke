@@ -12,7 +12,12 @@ func GetAllHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
-	todos := todomodel.GetAll(db)
+	userIDstr, _ := c.Params.Get("id")
+	userID, err := strconv.Atoi(userIDstr)
+	if err != nil {
+		panic(err)
+	}
+	todos := todomodel.GetAll(db, userID)
 
 	c.JSON(200, todos)
 }

@@ -23,7 +23,7 @@ migrate -database postgres://postgres:zxc321@localhost:5432/poke_development?ssl
 cd /cmd/poke
 dlv debug
 break main.main
-breka [file_name] [func_name]
+break [folder_name] [func_name]
 ```
 
 ### Learn about type in postgresql, how you could define a new type, assign a field to have value of that type, how to drop that type when migrating down. 
