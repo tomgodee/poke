@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	// TODO: godotenv is currently not used but might be needed in the future
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	pingController "github.com/tomvu/poke/controllers/ping"
