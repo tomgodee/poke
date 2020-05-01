@@ -12,7 +12,6 @@ import (
 	todoscontroller "github.com/tomvu/poke/controllers/todos"
 	userscontroller "github.com/tomvu/poke/controllers/users"
 	"github.com/tomvu/poke/middlewares"
-	"github.com/tomvu/poke/pkg/greet"
 )
 
 func writeLogFile() {
@@ -33,9 +32,6 @@ func main() {
 
 	// Ping API
 	router.GET("/ping", middlewares.PathLogger, pingController.Pong)
-
-	// Test if call a function from an imported pkg works
-	greet.Hello()
 
 	// Private Group user route
 	users := router.Group("/users", middlewares.Authentication)
