@@ -1,3 +1,4 @@
 *.log
 gin.log
-dev.env
+.env
+__debug_bin

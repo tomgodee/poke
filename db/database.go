@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -21,7 +22,13 @@ func Connect() *sql.DB {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	dbURL := os.Getenv("DATABASE_URL")
+
+	if len(dbURL) == 0 {
+		dbURL = psqlInfo
+	}
+
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		panic(err)
 	}
