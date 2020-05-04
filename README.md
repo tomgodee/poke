@@ -25,5 +25,3 @@ dlv debug
 break main.main
 break [folder_name] [func_name]
 ```
-
-### Learn about type in postgresql, how you could define a new type, assign a field to have value of that type, how to drop that type when migrating down. 
