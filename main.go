@@ -1,10 +1,14 @@
 package main
 
 import (
-	"io"
+	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+
 	// TODO: godotenv is currently not used but might be needed in the future
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
@@ -14,24 +18,55 @@ import (
 	"github.com/tomvu/poke/middlewares"
 )
 
-func writeLogFile() {
-	gin.DisableConsoleColor()
+type Message struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
+}
 
-	// Logging to a file.
-	f, _ := os.Create("gin.log")
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+var clients = make(map[*websocket.Conn]bool) // connected clients
+var broadcast = make(chan Message)
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func WsHandler(writer gin.ResponseWriter, request *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	conn, err := upgrader.Upgrade(writer, request, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Println("Client Connected")
+
+	for {
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		fmt.Println(string(p))
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 }
 
 func main() {
-	// Write actions to a log file as well as the console
-	writeLogFile()
 	setEnvVars()
-
 	// Default With the Logger and Recovery middleware already attached
 	router := gin.Default()
-
+	// router.Static("/assets", "./assets")
 	// Ping API
 	router.GET("/ping", middlewares.PathLogger, pingController.Pong)
+
+	router.GET("/ws", func(c *gin.Context) {
+		WsHandler(c.Writer, c.Request)
+	})
 
 	// Private Group user route
 	users := router.Group("/users", middlewares.Authentication)
@@ -60,41 +95,10 @@ func main() {
 		public.POST("/signup", userscontroller.CreateHandler)
 	}
 
-	router.GET("/welcome", WelcomeHandler)
-
-	router.GET("/getb", GetDataB)
-
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 	// router.Run(":3000") // listen and serve on a specified port
 }
 
 func setEnvVars() {
 	os.Setenv("SECRET_KEY", "Somethingveryimportantmbidk")
-}
-
-func WelcomeHandler(c *gin.Context) {
-	firstname := c.DefaultQuery("firstname", "Guest")
-	lastname := c.Query("lastname")
-
-	c.JSON(200, gin.H{
-		"message": "Welcome " + firstname + " " + lastname,
-	})
-}
-
-type StructA struct {
-	FieldA string `form:"field_a"`
-}
-
-type StructB struct {
-	NestedStruct StructA
-	FieldB       string `form:"field_b"`
-}
-
-func GetDataB(c *gin.Context) {
-	var b StructB
-	c.Bind(&b)
-	c.JSON(200, gin.H{
-		"a": b.NestedStruct,
-		"b": b.FieldB,
-	})
 }
