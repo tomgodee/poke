@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	myWebsocket "github.com/tomvu/poke/websocket"
 
 	// TODO: godotenv is currently not used but might be needed in the future
 	_ "github.com/joho/godotenv/autoload"
@@ -31,7 +33,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func WsHandler(writer gin.ResponseWriter, request *http.Request) {
+func WsHandler(pool *myWebsocket.Pool, writer gin.ResponseWriter, request *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
 	conn, err := upgrader.Upgrade(writer, request, nil)
@@ -42,6 +44,16 @@ func WsHandler(writer gin.ResponseWriter, request *http.Request) {
 
 	log.Println("Client Connected")
 
+	client := &myWebsocket.Client{
+		Conn: conn,
+		Pool: pool,
+	}
+
+	pool.Register <- client
+	client.Read()
+}
+
+func Reader(conn *websocket.Conn) {
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
@@ -56,6 +68,30 @@ func WsHandler(writer gin.ResponseWriter, request *http.Request) {
 	}
 }
 
+func Writer(conn *websocket.Conn) {
+	for {
+		fmt.Println("Sending")
+		messageType, r, err := conn.NextReader()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		w, err := conn.NextWriter(messageType)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if _, err := io.Copy(w, r); err != nil {
+			fmt.Println(err)
+			return
+		}
+		if err := w.Close(); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+}
+
 func main() {
 	setEnvVars()
 	// Default With the Logger and Recovery middleware already attached
@@ -64,8 +100,11 @@ func main() {
 	// Ping API
 	router.GET("/ping", middlewares.PathLogger, pingController.Pong)
 
+	pool := myWebsocket.NewPool()
+	go pool.Start()
+
 	router.GET("/ws", func(c *gin.Context) {
-		WsHandler(c.Writer, c.Request)
+		WsHandler(pool, c.Writer, c.Request)
 	})
 
 	// Private Group user route
