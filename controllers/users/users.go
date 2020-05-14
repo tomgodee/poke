@@ -2,6 +2,7 @@ package userscontroller
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -84,15 +85,24 @@ func LoginHandler(c *gin.Context) {
 	db := database.Connect()
 	defer db.Close()
 
-	loginData := c.PostFormMap("payload")
-	err := usermodel.Login(db, loginData)
+	var user usermodel.User
+	err := c.BindJSON(&user)
+	if err != nil {
+		panic(err)
+	}
+	token, err := usermodel.Login(db, user)
+	c.SetCookie("token", token, 3600, "/", "localhost", false, true)
 
 	switch {
 	case err == sql.ErrNoRows:
+		fmt.Print("username")
 		c.JSON(401, "Wrong username!")
 	case err == bcrypt.ErrMismatchedHashAndPassword:
+		fmt.Print("password")
 		c.JSON(401, "Wrong password!")
 	case err == nil:
+		// TODO: What if i wanna set or send token here ?
+		// Also need to send back the user the client here
 		c.JSON(200, "Success")
 	}
 }

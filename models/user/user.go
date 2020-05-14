@@ -12,10 +12,10 @@ import (
 )
 
 type User struct {
-	ID       int    `json: "id"`
-	Username string `json: "username" form:"username"`
+	ID       int    `json: "id,omitempty"`
+	Username string `json: "username" form:"username" binding:"required"`
 	Password string `json: "password" form:"password"`
-	Email    string `json: "email" form:"email"`
+	Email    string `json: "email,omitempty"`
 }
 
 func GetOne(db *sql.DB, user_id int) (u User) {
@@ -103,7 +103,7 @@ func Delete(db *sql.DB, id int) {
 	}
 }
 
-func Login(db *sql.DB, loginData map[string]string) (err error) {
+func Login(db *sql.DB, user User) (signedStr string, err error) {
 	const query = `
 	SELECT password, id
 	FROM users
@@ -111,29 +111,30 @@ func Login(db *sql.DB, loginData map[string]string) (err error) {
 
 	var pwd string
 	var id int
-	row := db.QueryRow(query, loginData["username"])
+	row := db.QueryRow(query, user.Username)
 	err = row.Scan(&pwd, &id)
 	switch {
 	case err == sql.ErrNoRows:
-		return err
+		return "", err
 	case err != nil:
 		panic(err)
 	}
 
 	// Check if password is correct
-	err = bcrypt.CompareHashAndPassword([]byte(pwd), []byte(loginData["password"]))
+	err = bcrypt.CompareHashAndPassword([]byte(pwd), []byte(user.Password))
 	switch {
 	case err == bcrypt.ErrMismatchedHashAndPassword:
-		return err
+		return "", err
 	case err != nil:
 		panic(err)
 	}
-	createToken(strconv.Itoa(id))
 
-	return nil
+	signedStr = createToken(strconv.Itoa(id))
+
+	return signedStr, nil
 }
 
-func createToken(userID string) {
+func createToken(userID string) (signedStr string) {
 	// Load secret key
 	mySigningKey := []byte(os.Getenv("SECRET_KEY"))
 
@@ -148,7 +149,12 @@ func createToken(userID string) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	fmt.Println(ss)
-	fmt.Println(err)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return ss
 }
 
 func hashPwd(pwd string) (hash []byte) {

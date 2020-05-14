@@ -96,7 +96,8 @@ func main() {
 	setEnvVars()
 	// Default With the Logger and Recovery middleware already attached
 	router := gin.Default()
-	// router.Static("/assets", "./assets")
+	router.Use(middlewares.CorsHandler)
+
 	// Ping API
 	router.GET("/ping", middlewares.PathLogger, pingController.Pong)
 

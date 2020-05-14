@@ -42,3 +42,20 @@ func Authentication(c *gin.Context) {
 		panic(err)
 	}
 }
+
+func CorsHandler(c *gin.Context) {
+	var origin = "*"
+	if c.Request.Header.Get("Origin") != "" {
+		origin = c.Request.Header.Get("Origin")
+	} else {
+		origin = "http://localhost:3000"
+	}
+
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	// c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, origin, Cache-Control, X-Requested-With, Referer, User-Agent")
+
+	c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+}
