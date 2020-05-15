@@ -91,7 +91,6 @@ func LoginHandler(c *gin.Context) {
 		panic(err)
 	}
 	token, err := usermodel.Login(db, user)
-	c.SetCookie("token", token, 3600, "/", "localhost", false, true)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -103,6 +102,7 @@ func LoginHandler(c *gin.Context) {
 	case err == nil:
 		// TODO: What if i wanna set or send token here ?
 		// Also need to send back the user the client here
-		c.JSON(200, "Success")
+		// c.SetCookie("token", token, 3600, "/", "localhost", false, true)
+		c.JSON(200, token)
 	}
 }

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -51,45 +49,6 @@ func WsHandler(pool *myWebsocket.Pool, writer gin.ResponseWriter, request *http.
 
 	pool.Register <- client
 	client.Read()
-}
-
-func Reader(conn *websocket.Conn) {
-	for {
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println(string(p))
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
-		}
-	}
-}
-
-func Writer(conn *websocket.Conn) {
-	for {
-		fmt.Println("Sending")
-		messageType, r, err := conn.NextReader()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		w, err := conn.NextWriter(messageType)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if _, err := io.Copy(w, r); err != nil {
-			fmt.Println(err)
-			return
-		}
-		if err := w.Close(); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
 }
 
 func main() {

@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -14,8 +15,9 @@ type Client struct {
 }
 
 type Message struct {
-	Type int    `json:"type"`
-	Body string `json:"body"`
+	Type   int    `json:"type"`
+	Sender string `json:"sender"`
+	Body   string `json:"body"`
 }
 
 type Pool struct {
@@ -41,12 +43,15 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		_, p, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		message := Message{Type: messageType, Body: string(p)}
+
+		var message Message
+		err = json.Unmarshal(p, &message)
+
 		c.Pool.Broadcast <- message
 		fmt.Printf("Message Received: %+v\n", message)
 	}
@@ -58,21 +63,20 @@ func (pool *Pool) Start() {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				fmt.Println(client)
+			for client := range pool.Clients {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "New User Joined..."})
 			}
 			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
 			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
+			for client := range pool.Clients {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "User Disconnected..."})
 			}
 			break
 		case message := <-pool.Broadcast:
 			fmt.Println("Sending message to all clients in Pool")
-			for client, _ := range pool.Clients {
+			for client := range pool.Clients {
 				if err := client.Conn.WriteJSON(message); err != nil {
 					fmt.Println(err)
 					return
