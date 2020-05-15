@@ -18,6 +18,7 @@ type Message struct {
 	Type   int    `json:"type"`
 	Sender string `json:"sender"`
 	Body   string `json:"body"`
+	Time   string `json:"time"`
 }
 
 type Pool struct {
