@@ -43,8 +43,9 @@ Then to push
 heroku pg:push [your_db_name] [remote_db_name] --app [your_app_name]
 // For me:
 // [your_db_name] = poke-development
-// [remote_db_name] = DATABASE_URL
-// [your_app_name] = postgresql-tapered-69911 
+// [remote_db_name] = postgresql-tapered-69911 => heroku pg:info
+// [your_app_name] = boiling-chamber-46455 
+heroku pg:push poke-development postgresql-tapered-69911 --app boiling-chamber-46455
 ```
 
 We shouldn't commit the ```.env``` file since this file contains config vars that we use on the local enviroment. On deployed enviroment we use other config vars. We can look at the heroku's .env file by typing

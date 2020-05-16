@@ -56,6 +56,9 @@ func CorsHandler(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, origin, Cache-Control, X-Requested-With, Referer, User-Agent")
-
 	c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+
+	if c.Request.Method == "OPTIONS" {
+		c.Status(200)
+	}
 }
